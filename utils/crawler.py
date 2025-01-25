@@ -1,12 +1,10 @@
+from turtledemo.sorting_animate import start_isort
+
 import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Connection": "keep-alive"
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
 # GitHub Advisory Database的URL
@@ -16,7 +14,7 @@ GITHUB_BASE_URL = "https://github.com/advisories?query=type%3Areviewed&page={}"
 ALIYUN_BASE_URL = "https://avd.aliyun.com?page={}"
 
 # NVD漏洞库的URL
-NVD_BASE_URL = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&search_type=all&isCpeNameSearch=false&page={}"
+NVD_BASE_URL = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&search_type=all&isCpeNameSearch=false&startIndex={}"
 
 
 def fetch_github_vulnerabilities():
@@ -149,15 +147,15 @@ def fetch_aliyun_vulnerabilities():
 
 def fetch_nvd_vulnerabilities():
     vulnerabilities = []
-    page = 0  # 起始索引
+    startIndex = 0
 
     while True:
-        url = NVD_BASE_URL.format(page)
+        url = NVD_BASE_URL.format(startIndex)
 
         try:
             response = requests.get(url, headers=HEADERS)
             if response.status_code != 200:
-                print(f"Failed to fetch data from page {page}: {response.status_code}")
+                print(f"Failed to fetch data from startIndex {startIndex}: {response.status_code}")
                 break
 
             soup = BeautifulSoup(response.text, "html.parser")
@@ -188,19 +186,17 @@ def fetch_nvd_vulnerabilities():
 
                 except Exception as e:
                     print(f"Error parsing vulnerability row: {e}")
-
-            return vulnerabilities
+            startIndex += 20
 
         except Exception as e:
             print(f"Failed to fetch data from NIST: {e}")
             break
 
-        page += 1
 
     return vulnerabilities
 
 def fetch_vulnerabilities():
-    github_vulnerabilities = fetch_github_vulnerabilities()
+    #github_vulnerabilities = fetch_github_vulnerabilities()
     #aliyun_vulnerabilities = fetch_aliyun_vulnerabilities()
     nvd_vulnerabilities = fetch_nvd_vulnerabilities()
 
