@@ -1,0 +1,14 @@
+driver_path: ./chromedriver # Path to the chromedriver
+
+avd:
+  enabled: false
+
+nvd:
+    enabled: true
+    start_page: 1 # Start page for the search
+    page_count: 5 # Number of pages to search
+
+github:
+    enabled: true
+    start_page: 1
+    page_count: 5
