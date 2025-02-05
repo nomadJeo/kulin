@@ -1,4 +1,4 @@
-driver_path: ./chromedriver # Path to the chromedriver
+driver_path: /home/nomad/chromedriver-linux64/chromedriver # Path to the chromedriver
 
 avd:
   enabled: false
@@ -11,4 +11,6 @@ nvd:
 github:
     enabled: true
     start_page: 1
-    page_count: 5
+    page_count: 1
+
+github_token: "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"

@@ -11,7 +11,7 @@ HEADERS = {
 # 阿里云漏洞库的URL
 ALIYUN_BASE_URL = "https://avd.aliyun.com?page={}"
 
-def avd():
+def fetch_aliyun_vulnerabilities():
     page = 1
 
     while True:
@@ -57,10 +57,12 @@ def avd():
             break
 
         page += 1
+        if page > 3:
+            break
 
     return data
 
 
 if __name__ == "__main__":
-    data = avd()
+    data = fetch_aliyun_vulnerabilities()
     print(data)

@@ -1,63 +1,75 @@
-import yaml
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from pydoc import pager
+
+import requests
+from bs4 import BeautifulSoup
 import time
-import pandas as pd
-from tqdm import tqdm
 
-def get_driver_path():
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-    return config["driver_path"]
+# 禁用安全请求警告（仅用于示例）
+requests.packages.urllib3.disable_warnings()
 
-def scrape_data(url, start_page, page_count):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920x1080")
-    driver_path = get_driver_path()
-    service = Service(driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+def parse_page(page_url):
+    github_token = "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"
+    headers = {
+        "Authorization": f"token {github_token}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
 
-    data = []
-    header_names = ['Vuln. ID', 'Summary', 'Date', 'Severity', 'Ref. URL']
     try:
-        for page in range(start_page, start_page + page_count):
-            if page > 1:
-                url = url.replace("page=%d" % (page - 1), "page=%d" % page)
+        response = requests.get(page_url, headers=headers, timeout=15, verify=False)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-            driver.get(url)
-            time.sleep(3)
+        advisory_list = []
+        for row in soup.select('.Box-row'):
+            vuln_id = row.select_one('.text-bold').get_text(strip=True)
+            summary = row.select_one('.Link--primary').get_text(strip=True)
+            severity = row.select_one('.Label').get_text(strip=True)
+            date = row.select_one('relative-time')['datetime'].split('T')[0]
+            url = row.select_one('a')['href']
 
-            table = driver.find_element(By.CLASS_NAME, "Box")
+            advisory_list.append({
+                "vulnerabilityName": f"{vuln_id}: {summary}",
+                "disclosureTime": date,
+                "riskLevel": severity,
+                "referenceLink": 'https://github.com'+url,
+                "affectsWhitelist":0
+            })
 
-            # data
-            rows = table.find_elements(By.CLASS_NAME, "Box-row")
-            for row in tqdm(rows, desc=f"Processing page {page} of {page_count} pages"):
-                Vuln_ID = row.find_element(By.CLASS_NAME, "text-bold").text
-                Summary = row.find_element(By.CLASS_NAME, "Link--primary").text
-                Severity = row.find_element(By.CLASS_NAME, "Label").text
-                Date = row.find_element(By.TAG_NAME, "relative-time").get_attribute("datetime").split("T")[0]
-                URL = row.find_element(By.TAG_NAME, "a").get_attribute("href")
-                row_data = [Vuln_ID, Summary, Date, Severity, URL]
-                data.append(row_data + [""] * (len(header_names) - len(row_data)))
+        next_page = soup.select_one('a.next_page')
+        has_next = bool(next_page)
 
-        return header_names, data
-
-    finally:
-        driver.quit()
+        return advisory_list, has_next
+    except Exception as e:
+        print(f"Error processing {page_url}: {str(e)}")
+        return [], False
 
 
-def github(start_page = 1, page_count = 25):
-    print("Gathering security advisories from GitHub...")
-    target_url = "https://github.com/advisories?page=1&query=type%3Areviewed"  # 替换为实际目标 URL
-    scraped_data_header, scraped_data = scrape_data(target_url, start_page, page_count)
-    df = pd.DataFrame(scraped_data)
-    df.columns = scraped_data_header
-    df.to_csv("github.csv", index=False, encoding="utf-8")
-    print("COMPLETE. Data saved to `github.csv`")
+def github(start_page=1):
+    print("Gathering security advisories from GitHub (optimized)...")
+
+    base_url = "https://github.com/advisories?page={}&query=type%3Areviewed"
+    page_num = start_page
+    combined = []
+
+    while True:
+        page_url = base_url.format(page_num)
+        advisory_list, has_next = parse_page(page_url)
+        combined.extend(advisory_list)
+
+        print(f"Processed page {page_num}, collected {len(advisory_list)} advisories.")
+
+        if not has_next:
+            break
+
+        page_num += 1
+
+    print(f"COMPLETE. Collected {len(combined)} advisories.")
+    return combined
+
+
 
 if __name__ == "__main__":
-    github()
+    start_time = time.time()
+    json_data = github()  # 动态获取所有页数据
+    print(f"Execution time: {time.time() - start_time:.2f} seconds")
+    print(json_data)

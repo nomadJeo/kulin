@@ -197,12 +197,12 @@ def fetch_nvd_vulnerabilities():
 
 def fetch_vulnerabilities():
     #github_vulnerabilities = fetch_github_vulnerabilities()
-    #aliyun_vulnerabilities = fetch_aliyun_vulnerabilities()
-    nvd_vulnerabilities = fetch_nvd_vulnerabilities()
+    aliyun_vulnerabilities = fetch_aliyun_vulnerabilities()
+    #nvd_vulnerabilities = fetch_nvd_vulnerabilities()
 
 
-    all_vulnerabilities = nvd_vulnerabilities
-    return all_vulnerabilities
+    #all_vulnerabilities = nvd_vulnerabilities
+    #return all_vulnerabilities
 
 
 if __name__ == "__main__":
