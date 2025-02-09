@@ -8,9 +8,7 @@ import time
 requests.packages.urllib3.disable_warnings()
 
 def parse_page(page_url):
-    github_token = "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"
     headers = {
-        "Authorization": f"token {github_token}",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
 
