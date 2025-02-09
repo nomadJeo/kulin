@@ -1,4 +1,4 @@
-from avd import avd
+from avd import fetch_aliyun_vulnerabilities
 from github import github
 from nvd import nvd
 
@@ -16,7 +16,7 @@ def main():
         if config is None:
             raise Exception("Failed to load configuration file")
         if config["avd"]["enabled"]:
-            avd()
+            fetch_aliyun_vulnerabilities()
         if config["nvd"]["enabled"]:
             nvd(config["nvd"]["start_page"], config["nvd"]["page_count"])
         if config["github"]["enabled"]:
