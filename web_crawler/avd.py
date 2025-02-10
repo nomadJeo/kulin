@@ -15,6 +15,8 @@ def avd():
     page = 1
 
     while True:
+        if page > 1:
+            break
         url = ALIYUN_BASE_URL.format(page)
         print(f"Fetching Aliyun page {page}: {url}")
         data = []
@@ -56,7 +58,8 @@ def avd():
             print(f"Failed to fetch data from Aliyun: {e}")
             break
 
-        page += 1
+        page +=1
+
 
     return data
 

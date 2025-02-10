@@ -1,69 +1,82 @@
+import requests
+from bs4 import BeautifulSoup
+
+HEADERS = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
+# NVD漏洞库的URL
+NVD_BASE_URL = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&search_type=all&isCpeNameSearch=false&startIndex={}"
+
+def fetch_nvd_vulnerabilities():
+    vulnerabilities = []
+    startIndex = 0
+
+    while True:
+        url = NVD_BASE_URL.format(startIndex)
+        if startIndex > 20:
+            break
+
+        try:
+            response = requests.get(url, headers=HEADERS)
+            if response.status_code != 200:
+                print(f"Failed to fetch data from startIndex {startIndex}: {response.status_code}")
+                break
+
+            print(f"Success to fetch data from startIndex {startIndex}")
+            soup = BeautifulSoup(response.text, "html.parser")
+            for row in soup.find_all("tr", {"data-testid": lambda x: x and x.startswith("vuln-row-")}):
+                try:
+
+                    desc_tag = row.find("p", {"data-testid": lambda x: x and x.startswith("vuln-summary-")})
+                    vulnerability_name = desc_tag.text.strip() if desc_tag else "No description available"
+
+                    # 获取漏洞名称及链接
+                    cve_tag = row.find("a", {"data-testid": lambda x: x and x.startswith("vuln-detail-link-")})
+                    vulnerability_id = cve_tag.text.strip() if cve_tag else "Unknown"
+                    reference_link = "https://nvd.nist.gov" + cve_tag["href"]
+
+                    # 获取披露日期
+                    date_tag = row.find("span", {"data-testid": lambda x: x and x.startswith("vuln-published-on-")})
+                    disclosure_date = convert_date(date_tag.text.strip() if date_tag else "Unknown")
+
+                    # 获取风险等级（可选，具体请确认 HTML 结构是否包含）
+                    risk_tag = row.find("td", {"nowrap": "nowrap"})
+                    risk_level = risk_tag.text.strip() if risk_tag else "Unknown"
+
+                    vulnerabilities.append({
+                        "vulnerabilityName": vulnerability_id,
+                        "disclosureTime": disclosure_date,
+                        "riskLevel": risk_level,
+                        "referenceLink": reference_link,
+                        "affectsWhitelist": 0
+                    })
+
+                except Exception as e:
+                    print(f"Error parsing vulnerability row: {e}")
+            startIndex += 20
+
+        except Exception as e:
+            print(f"Failed to fetch data from NIST: {e}")
+            break
+
+
+    return vulnerabilities
+
+
 from datetime import datetime
 
-import yaml
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-import time
-from tqdm import tqdm
 
-def get_driver_path():
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-    return config["driver_path"]
+def convert_date(date_str):
+    # 解析带有时区的日期字符串
+    date_obj = datetime.strptime(date_str, "%B %d, %Y; %I:%M:%S %p %z")
 
+    # 将 datetime 对象转换为新的字符串格式
+    return date_obj.strftime("%Y-%m-%d")
 
-def scrape_data(url, start_page, page_count):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920x1080")
-    driver_path = get_driver_path()
-    service = Service(driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-
-    data = []
-    try:
-        for page in range(start_page, start_page + page_count):
-            if page > 1:
-                url = url.replace("startIndex=%d" % ((page - 2) * 20), "startIndex=%d" % ((page - 1) * 20))
-
-            driver.get(url)
-            time.sleep(3)
-
-            table = driver.find_element(By.CLASS_NAME, "table")
-            tbody = table.find_element(By.TAG_NAME, "tbody")
-
-            rows = tbody.find_elements(By.TAG_NAME, "tr")
-            for row in tqdm(rows, desc=f"Processing page {page} of {page_count} pages"):
-                cells = row.find_elements(By.TAG_NAME, "td")
-                Vuln_ID = row.find_element(By.TAG_NAME, "a").text
-                Summary = cells[0].find_element(By.TAG_NAME, "p").text
-                Date = cells[0].find_element(By.TAG_NAME, "span").text
-                dt = datetime.strptime(Date, "%B %d, %Y; %I:%M:%S %p %z")
-                Date = dt.strftime("%Y-%-m-%-d")
-                Severity = cells[1].text
-                URL = row.find_element(By.TAG_NAME, "a").get_attribute("href")
-                data.append({
-                "vulnerabilityName": Vuln_ID,
-                "disclosureTime": Date,
-                "riskLevel": Severity,
-                "referenceLink": URL,
-                "affectsWhitelist":0
-            })
-        return data
-
-
-    finally:
-        driver.quit()
-
-def nvd(start_page = 1, page_count = 200):
+def nvd():
     print("Gathering security advisories from NVD...")
-    target_url = "https://nvd.nist.gov/vuln/search/results?isCpeNameSearch=false&results_type=overview&form_type=Basic&search_type=all&startIndex=0"  # 替换为实际目标 URL
-    scraped_data = scrape_data(target_url, start_page, page_count)
-    print(scraped_data)
-    return scraped_data
+    return fetch_nvd_vulnerabilities()
 
 if __name__ == "__main__":
     nvd()
