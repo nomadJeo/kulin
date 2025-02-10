@@ -59,6 +59,9 @@ def github(start_page=1):
         if not has_next:
             break
 
+        if page_num >= 100:
+            break
+
         page_num += 1
 
     print(f"COMPLETE. Collected {len(combined)} advisories.")

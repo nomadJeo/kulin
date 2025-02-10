@@ -14,7 +14,7 @@ def fetch_nvd_vulnerabilities():
 
     while True:
         url = NVD_BASE_URL.format(startIndex)
-        if startIndex > 20:
+        if startIndex > 2000:
             break
 
         try:
