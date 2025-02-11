@@ -30,7 +30,8 @@ def parse_page(page_url):
                 "disclosureTime": date,
                 "riskLevel": severity,
                 "referenceLink": 'https://github.com'+url,
-                "affectsWhitelist":0
+                "affectsWhitelist":0,
+                "isDelete":0
             })
 
         next_page = soup.select_one('a.next_page')

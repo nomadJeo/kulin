@@ -48,7 +48,8 @@ def avd():
                             "disclosureTime": vul_date,
                             "riskLevel": riskLevel,
                             "referenceLink": URL,
-                            "affectsWhitelist": 0
+                            "affectsWhitelist": 0,
+                            "isDelete": 0
                         })
 
                 except Exception as e:

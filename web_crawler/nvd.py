@@ -49,7 +49,8 @@ def fetch_nvd_vulnerabilities():
                         "disclosureTime": disclosure_date,
                         "riskLevel": risk_level,
                         "referenceLink": reference_link,
-                        "affectsWhitelist": 0
+                        "affectsWhitelist": 0,
+                        "isDelete": 0
                     })
 
                 except Exception as e:
