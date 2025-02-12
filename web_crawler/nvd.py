@@ -64,6 +64,16 @@ def fetch_nvd_vulnerabilities():
 
     return vulnerabilities
 
+def fetch_description(cve_id):
+    base_url = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&query={}&search_type=all&isCpeNameSearch=false"
+    url = base_url.format(cve_id)
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
+        return "No description available"
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    desc_tag = soup.find("p", {"data-testid": lambda x: x and x.startswith("vuln-summary-")})
+    return desc_tag.text.strip() if desc_tag else "No description available"
 
 from datetime import datetime
 

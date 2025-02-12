@@ -1,8 +1,11 @@
 import re
 
 import requests
+from accelerate.commands.config.default import description
 from bs4 import BeautifulSoup
 from distributed.utils_test import security
+
+from web_crawler.nvd import fetch_description
 
 HEADERS = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -43,8 +46,18 @@ def avd():
                         vul_date = item.contents[7].text.strip()
                         riskLevel = re.sub(r'\s+', ' ', item.contents[9].text).replace("\n", " ").strip()
                         URL = "https://avd.aliyun.com"+avd_code_tag["href"]  # 从<a>标签中直接获取链接
+                        match = re.search(r'CVE-\d{4}-\d+', vul_name)
+                        if match:
+                            cve_id = match.group(0)
+                        else:
+                            continue
+                        description = fetch_description(cve_id)
+                        if description=="No description available":
+                            continue
                         data.append({
-                            "vulnerabilityName": f"{avd_code}: {vul_name}",
+                            "vulnerabilityName": vul_name,
+                            "cveId": cve_id,
+                            "description": description,
                             "disclosureTime": vul_date,
                             "riskLevel": riskLevel,
                             "referenceLink": URL,

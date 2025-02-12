@@ -4,6 +4,8 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
+from web_crawler.nvd import fetch_description
+
 # 禁用安全请求警告（仅用于示例）
 requests.packages.urllib3.disable_warnings()
 
@@ -20,14 +22,21 @@ def parse_page(page_url):
         advisory_list = []
         for row in soup.select('.Box-row'):
             vuln_id = row.select_one('.text-bold').get_text(strip=True)
+            if vuln_id.startswith("GHSA"):
+                continue
             summary = row.select_one('.Link--primary').get_text(strip=True)
+            description = fetch_description(vuln_id)
+            if description=="No description available":
+                continue
             severity = row.select_one('.Label').get_text(strip=True)
             date = row.select_one('relative-time')['datetime'].split('T')[0]
             url = row.select_one('a')['href']
 
             advisory_list.append({
-                "vulnerabilityName": f"{vuln_id}: {summary}",
+                "vulnerabilityName": summary,
+                "cveId": vuln_id,
                 "disclosureTime": date,
+                "description": description,
                 "riskLevel": severity,
                 "referenceLink": 'https://github.com'+url,
                 "affectsWhitelist":0,
@@ -60,7 +69,7 @@ def github(start_page=1):
         if not has_next:
             break
 
-        if page_num >= 100:
+        if page_num >= 10:
             break
 
         page_num += 1
