@@ -29,7 +29,7 @@ def fetch_nvd_vulnerabilities():
                 try:
 
                     desc_tag = row.find("p", {"data-testid": lambda x: x and x.startswith("vuln-summary-")})
-                    vulnerability_name = desc_tag.text.strip() if desc_tag else "No description available"
+                    description = desc_tag.text.strip() if desc_tag else "No description available"
 
                     # 获取漏洞名称及链接
                     cve_tag = row.find("a", {"data-testid": lambda x: x and x.startswith("vuln-detail-link-")})
@@ -46,6 +46,8 @@ def fetch_nvd_vulnerabilities():
 
                     vulnerabilities.append({
                         "vulnerabilityName": vulnerability_id,
+                        "cveId":vulnerability_id,
+                        "description": description,
                         "disclosureTime": disclosure_date,
                         "riskLevel": risk_level,
                         "referenceLink": reference_link,
