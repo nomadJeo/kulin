@@ -5,7 +5,7 @@ from accelerate.commands.config.default import description
 from bs4 import BeautifulSoup
 from distributed.utils_test import security
 
-from web_crawler.nvd import fetch_description
+from web_crawler.nvd import fetch_description, fetch_riskLevel
 
 HEADERS = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -44,7 +44,6 @@ def avd():
                         avd_code = avd_code_tag.text.strip()
                         vul_name = item.contents[3].text.strip()
                         vul_date = item.contents[7].text.strip()
-                        riskLevel = re.sub(r'\s+', ' ', item.contents[9].text).replace("\n", " ").strip()
                         URL = "https://avd.aliyun.com"+avd_code_tag["href"]  # 从<a>标签中直接获取链接
                         match = re.search(r'CVE-\d{4}-\d+', vul_name)
                         if match:
@@ -54,6 +53,7 @@ def avd():
                         description = fetch_description(cve_id)
                         if description=="No description available":
                             continue
+                        riskLevel = fetch_riskLevel(cve_id)
                         data.append({
                             "vulnerabilityName": vul_name,
                             "cveId": cve_id,

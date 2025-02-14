@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from openai import base_url
 
 HEADERS = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -42,7 +43,14 @@ def fetch_nvd_vulnerabilities():
 
                     # 获取风险等级（可选，具体请确认 HTML 结构是否包含）
                     risk_tag = row.find("td", {"nowrap": "nowrap"})
-                    risk_level = risk_tag.text.strip() if risk_tag else "Unknown"
+                    risk_level = 'Medium'
+                    risk = risk_tag.text.strip() if risk_tag else "Unknown"
+                    if risk.__contains__('HIGH'):
+                        risk_level = 'High'
+                    if risk.__contains__('LOW'):
+                        risk_level = 'Low'
+                    if risk.__contains__('MEDIUM'):
+                        risk_level = 'Medium'
 
                     vulnerabilities.append({
                         "vulnerabilityName": vulnerability_id,
@@ -87,9 +95,28 @@ def convert_date(date_str):
     # 将 datetime 对象转换为新的字符串格式
     return date_obj.strftime("%Y-%m-%d")
 
+def fetch_riskLevel(cve_id):
+    base_url = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&query={}&search_type=all&isCpeNameSearch=false"
+    url = base_url.format(cve_id)
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
+        return "No description available"
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    risk_tag = soup.find("td", {"nowrap": "nowrap"})
+    risk_level = 'Medium'
+    risk = risk_tag.text.strip() if risk_tag else "Unknown"
+    if risk.__contains__('HIGH'):
+        risk_level = 'High'
+    if risk.__contains__('LOW'):
+        risk_level = 'Low'
+    if risk.__contains__('MEDIUM'):
+        risk_level = 'Medium'
+    return risk_level
+
 def nvd():
     print("Gathering security advisories from NVD...")
     return fetch_nvd_vulnerabilities()
 
 if __name__ == "__main__":
-    nvd()
+    fetch_riskLevel("CVE-2024-13345")

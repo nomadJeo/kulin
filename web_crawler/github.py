@@ -29,6 +29,10 @@ def parse_page(page_url):
             if description=="No description available":
                 continue
             severity = row.select_one('.Label').get_text(strip=True)
+            if severity=='Moderate':
+                severity='Medium'
+            if severity=='Critical':
+                severity='High'
             date = row.select_one('relative-time')['datetime'].split('T')[0]
             url = row.select_one('a')['href']
 
