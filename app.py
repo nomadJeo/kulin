@@ -1,7 +1,7 @@
 # app.py
 from flask import Flask, jsonify
 
-from LLM.llm import QwenClient, DeepSeekClient, LlamaClient
+from llm.llm import QwenClient, DeepSeekClient, LlamaClient
 from web_crawler import github
 from web_crawler.avd import avd
 from web_crawler.nvd import nvd
