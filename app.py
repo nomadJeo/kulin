@@ -61,7 +61,7 @@ def get_llm_query():
 
 from flask import Flask, request, jsonify
 
-@app.route('/llm/repair/suggestion', methods=['GET'])  # 修正接口路径
+@app.route('/llm/repair/suggestion', methods=['POST'])  # 修正接口路径
 def get_repair_suggestion():
     # 获取图片中要求的四个参数
     vulnerability_name = request.args.get("vulnerability_name")
@@ -84,6 +84,7 @@ def get_repair_suggestion():
         query_content.append(f"漏洞描述：{vulnerability_desc}")
     if related_code:
         query_content.append(f"相关代码：\n{related_code}")
+    query_content.append("\n根据以上信息，生成修复建议：")
     full_query = "\n\n".join(query_content)
 
     try:
@@ -97,7 +98,7 @@ def get_repair_suggestion():
             "code": 200,
             "message": "success",
             "obj": {
-                "fix_advise": result  # 注意字段名称与接口文档一致
+                "fix_advise": result
             }
         })
     except KeyError:
