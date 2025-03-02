@@ -1,11 +1,13 @@
 # app.py
+import requests
+from flask import Flask, jsonify, request
 from flask import Flask, jsonify
-
 from llm.llm import QwenClient, DeepSeekClient, LlamaClient
 from parase.pom_parse import process_projects
 from web_crawler import github
 from web_crawler.avd import avd
 from web_crawler.nvd import nvd
+from VulLibGen.getLabels import getLabels
 
 model_clients = {
     "qwen": QwenClient(model_name="qwen-max"),
@@ -15,6 +17,7 @@ model_clients = {
 
 app = Flask(__name__)
 
+
 @app.route('/vulnerabilities/github', methods=['GET'])
 def get_github_vulnerabilities():
     data = github.github()
@@ -23,6 +26,7 @@ def get_github_vulnerabilities():
 @app.route('/vulnerabilities/avd', methods=['GET'])
 def get_avd_vulnerabilities():
     data = avd()
+    print(data)
     return jsonify(data)
 
 @app.route('/vulnerabilities/nvd', methods=['GET'])
@@ -120,6 +124,23 @@ if __name__ == '__main__':
 def pom_parse():
     project_folder = request.args.get("project_folder")
     return process_projects(project_folder)
+
+@app.route('/vulnerabilities/detect', methods=['POST'])
+def detect_vulnerabilities():
+    # 从请求体中获取JSON数据
+    params = request.get_json()
+
+    print(params)
+    data = getLabels(params=params)
+    print("data=")
+    print(data)
+    return jsonify(data)
+
+@app.route('/vulnerabilities/test', methods=['POST'])
+def test():
+    response = requests.post(' http://10.58.0.2:5000/vulnerabilities/test')
+    print(response.text)
+    return response.text
 
 if __name__ == '__main__':
     app.run(debug=True)
