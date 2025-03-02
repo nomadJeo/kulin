@@ -1,21 +1,10 @@
-from tf_idf.tf_idf import process_data_to_json
-# 调用示例
-if __name__ == '__main__':
-    params = {
-        'cve_id': 'CVE-2023-1234',
-        'desc': 'This is a sample description.'
-    }
-
-    trains = [{
-        "cve_id": params.get('cve_id'),
-        "labels": [],  # 根据实际情况填充
-        "desc": params.get('desc')
-    }]
-
-    tests = trains.copy()  # 或者根据实际情况定义tests
-
-    pros_path = '../VulLibGen/white_list/label_desc.csv'
-    print(1)
-    result_json = process_data_to_json(trains, tests, pros_path)
-    print(result_json)  # 输出将是JSON格式的new_test
+import requests
+payload = {
+    "data": [{'instruction': '',
+              'input': 'Below is a Java vulnerability description. Please identify the software name affected by it. Input: An authentication bypass in the Palo Alto Networks PAN-OS software enables an unauthenticated attacker with network access to the management web interface to bypass the authentication otherwise required by the PAN-OS management web interface and invoke certain PHP scripts. While invoking these PHP scripts does not enable remote code execution, it can negatively impact integrity and confidentiality of PAN-OS.  You can greatly reduce the risk of this issue by restricting access to the management web interface to only trusted internal IP addresses according to our recommended  best practices deployment guidelines https://live.paloaltonetworks.com/t5/community-blogs/tips-amp-tricks-how-to-secure-the-management-access-of-your-palo/ba-p/464431 .  This issue does not affect Cloud NGFW or Prisma Access software.. Top 1 search result is maven:com.lihaoyi:os-2.11.12_2.11. What is affected packages? Please output in the Maven identifier format maven:group id:artifact id.',
+              'output': []}]
+}
+url = 'http://10.58.0.2:5000/vulnerabilities/detect/LLM/java'
+response = requests.post(url, json=payload)
+print(response.text)
 

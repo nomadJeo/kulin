@@ -50,13 +50,30 @@ def sco_similarity(text1, text2):
 
 # 主处理函数
 def process_libraries(threshold, method, libraries_str, packages_file_path):
+    threshold = float(threshold)
     # 检查文件是否存在
     if not os.path.isfile(packages_file_path):
         raise FileNotFoundError(f"找不到文件: {packages_file_path}")
 
-    # 读取并解析包名集合JSON文件
+    # 读取文件内容
     with open(packages_file_path, 'r', encoding='utf-8') as f:
-        packages = json.load(f)
+        file_content = f.read()
+
+    # 尝试将文件内容解析为Python对象
+    try:
+        packages = json.loads(file_content)  # 直接解析JSON字符串
+        if isinstance(packages, str):
+            packages = json.loads(packages)  # 直接解析JSON字符串
+    except json.JSONDecodeError as e:
+        raise ValueError(f"无法解析JSON文件: {packages_file_path}. 错误: {e}")
+
+    # 打印调试信息
+    print(
+        f"Packages type: {type(packages)}, Packages content: {packages[:2] if isinstance(packages, list) else packages}")  # 显示前两个元素用于调试
+
+    # 确认 packages 是一个列表
+    if not isinstance(packages, list):
+        raise ValueError(f"Expected a list of packages, but got {type(packages)}")
 
     package_names = [pkg['name'] for pkg in packages]
 
@@ -116,9 +133,9 @@ def process_libraries(threshold, method, libraries_str, packages_file_path):
 # 示例调用
 if __name__ == "__main__":
     threshold = 0.2
-    method = 'cos'
+    method = 'lev'
     libraries_str = "com.google.api-client:google-api-client;com.google.inject.extensions:guice-testlib;extra.lib"
-    packages_file_path = '/Users/mac/Desktop/kulin/VulLibGen/white_list/label_desc_c.json'  # 替换为你的实际文件路径
+    packages_file_path = '/Users/mac/Desktop/kulin/VulLibGen/white_list/label_desc.json'  # 替换为你的实际文件路径
 
     try:
         output = process_libraries(threshold, method, libraries_str, packages_file_path)
