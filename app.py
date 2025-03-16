@@ -2,7 +2,14 @@
 import requests
 from flask import Flask, jsonify, request
 from flask import Flask, jsonify
+from crypt import methods
+
+from flask import Flask
+from flask import request, jsonify
+from flask_cors import CORS
+
 from llm.llm import QwenClient, DeepSeekClient, LlamaClient
+from parase.c_parse import collect_dependencies
 from parase.pom_parse import process_projects
 from web_crawler import github
 from web_crawler.avd import avd
@@ -16,6 +23,7 @@ model_clients = {
 }
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/vulnerabilities/github', methods=['GET'])
@@ -34,7 +42,6 @@ def get_nvd_vulnerabilities():
     data = nvd()
     return jsonify(data)
 
-from flask import request, jsonify
 
 @app.route('/llm/query', methods=['GET'])
 def get_llm_query():
@@ -61,9 +68,6 @@ def get_llm_query():
             "code": 400,
             "message": str(e)
         })
-
-
-from flask import Flask, request, jsonify
 
 @app.route('/llm/repair/suggestion', methods=['POST'])  # 修正接口路径
 def get_repair_suggestion():
@@ -116,14 +120,15 @@ def get_repair_suggestion():
             "message": f"生成建议时出错：{str(e)}"
         }), 400
 
-
-if __name__ == '__main__':
-    app.run()
-
 @app.route('/parse/pom_parse', methods=['GET'])
 def pom_parse():
     project_folder = request.args.get("project_folder")
     return process_projects(project_folder)
+
+@app.route('/parse/c_parse',methods=['GET'])
+def c_parse():
+    project_folder = request.args.get("project_folder")
+    return  collect_dependencies(project_folder)
 
 @app.route('/vulnerabilities/detect', methods=['POST'])
 def detect_vulnerabilities():

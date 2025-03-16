@@ -6,6 +6,23 @@ import xml.etree.ElementTree as ET
 from llm.llm import QwenClient
 
 
+# 批量处理提示词模板
+system_prompt = """Generate technical descriptions in English for Maven dependencies following these rules:
+1. For each dependency in format 'groupId:artifactId:version'
+2. Describe main functionality and typical use cases
+3. Use concise technical language (80-120 words)
+4. Output JSON array format:
+[{
+    "name": "full dependency name",
+    "description": "generated text"
+},...]
+
+Example:
+[{
+    "name": "org.springframework.boot:spring-boot-starter-web:2.7.0",
+    "description": "Provides essential components for building web applications with Spring Boot..."
+}]"""
+
 def parse_pom_file(pom_path):
     """解析本地pom.xml文件并提取依赖信息"""
     try:
@@ -45,7 +62,6 @@ def parse_pom_file(pom_path):
         print(f"处理文件失败 ({pom_path}): {str(e)}")
         return []
 
-
 def find_pom_files(root_dir):
     """递归查找所有pom.xml文件"""
     pom_files = []
@@ -55,10 +71,7 @@ def find_pom_files(root_dir):
                 pom_files.append(os.path.join(dirpath, filename))
     return pom_files
 
-
-def process_projects(project_folder, batch_size=10):
-    """批量处理版本"""
-    # 解析pom文件（保持原有逻辑）
+def process_projects(project_folder):
     pom_files = find_pom_files(project_folder)
     if not pom_files:
         print(f"No pom.xml files found in {project_folder}")
@@ -69,30 +82,16 @@ def process_projects(project_folder, batch_size=10):
         dependencies = parse_pom_file(pom_path)
         unique_dependencies.update(dependencies)
 
+    return llm_communicate(unique_dependencies,system_prompt,10)
+
+def llm_communicate(unique_dependencies,system_prompt,batch_size = 10):
+
     # 初始化客户端
     qwen_client = QwenClient(model_name="qwen-max")
     all_deps = list(unique_dependencies)
     total = len(all_deps)
 
     result = []
-    error_count = 0
-
-    # 批量处理提示词模板
-    system_prompt = """Generate technical descriptions in English for Maven dependencies following these rules:
-1. For each dependency in format 'groupId:artifactId:version'
-2. Describe main functionality and typical use cases
-3. Use concise technical language (80-120 words)
-4. Output JSON array format:
-[{
-    "name": "full dependency name",
-    "description": "generated text"
-},...]
-
-Example:
-[{
-    "name": "org.springframework.boot:spring-boot-starter-web:2.7.0",
-    "description": "Provides essential components for building web applications with Spring Boot..."
-}]"""
 
     for i in range(0, total, batch_size):
         batch = all_deps[i:i + batch_size]
@@ -111,14 +110,11 @@ Example:
                 if isinstance(parsed_response, list):
                     result.extend(parsed_response)
                 else:
-                    error_count += len(batch)
                     print(f"Invalid response format in batch {i // batch_size}")
             except json.JSONDecodeError as e:
-                error_count += len(batch)
                 print(f"JSON parsing failed in batch {i // batch_size}: {str(e)}")
 
         except Exception as e:
-            error_count += len(batch)
             print(f"Batch {i // batch_size} failed: {str(e)}")
 
         time.sleep(1)  # 控制请求频率
