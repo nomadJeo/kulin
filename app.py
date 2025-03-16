@@ -8,6 +8,12 @@ from flask import Flask
 from flask import request, jsonify
 from flask_cors import CORS
 
+from flask import Flask
+from flask_cors import CORS, cross_origin
+
+app = Flask(__name__)
+# r'/*' 是通配符，让本服务器所有的 URL 都允许跨域请求
+CORS(app)
 from llm.llm import QwenClient, DeepSeekClient, LlamaClient
 from parase.c_parse import collect_dependencies
 from parase.pom_parse import process_projects
@@ -15,6 +21,7 @@ from web_crawler import github
 from web_crawler.avd import avd
 from web_crawler.nvd import nvd
 from VulLibGen.getLabels import getLabels
+
 
 model_clients = {
     "qwen": QwenClient(model_name="qwen-max"),
@@ -44,6 +51,7 @@ def get_nvd_vulnerabilities():
 
 
 @app.route('/llm/query', methods=['GET'])
+@cross_origin()
 def get_llm_query():
     query = request.args.get("query")
     model = request.args.get("model")
@@ -70,12 +78,13 @@ def get_llm_query():
         })
 
 @app.route('/llm/repair/suggestion', methods=['POST'])  # 修正接口路径
+@cross_origin()
 def get_repair_suggestion():
     # 获取图片中要求的四个参数
-    vulnerability_name = request.args.get("vulnerability_name")
-    vulnerability_desc = request.args.get("vulnerability_desc")
-    related_code = request.args.get("related_code")
-    model = request.args.get("model", "qwen")  # 设置默认模型
+    vulnerability_name = request.form.get("vulnerability_name")
+    vulnerability_desc = request.form.get("vulnerability_desc")
+    related_code = request.form.get("related_code")
+    model = request.form.get("model", "qwen")  # 设置默认模型
 
     # 参数校验（至少需要漏洞相关信息）
     if not any([vulnerability_name, vulnerability_desc, related_code]):
@@ -119,6 +128,7 @@ def get_repair_suggestion():
             "code": 400,
             "message": f"生成建议时出错：{str(e)}"
         }), 400
+
 
 @app.route('/parse/pom_parse', methods=['GET'])
 def pom_parse():
