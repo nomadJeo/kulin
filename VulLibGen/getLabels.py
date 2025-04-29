@@ -1,5 +1,7 @@
 from VulLibGen.tf_idf import tf_idf
-from VulLibGen.tf_idf.threshold_cal import process_libraries
+import requests
+# from VulLibGen.tf_idf.threshold_cal import process_librariesf
+from VulLibGen.vuldet_utils.datasetConstructor import format, convert_to_compact_format
 import json
 import csv
 import tempfile
@@ -91,11 +93,33 @@ def getLabels(params=None):
                                      'summary': item['desc']})  # 注意这里将'desc'改为'summary'以匹配fieldnames
                 csv_temp_file_path = csv_temp_file.name
                 print(f"CSV临时文件已创建: {csv_temp_file_path}")
-
         if detect_strategy == 'TinyModel-whiteList':
             result = tf_idf.tiny_model_process_data_to_json(trains, tests, csv_temp_file_path, detect_strategy,language.similarityThreshold)
         if detect_strategy == 'LLM-whiteList':
             result = tf_idf.llm_process_data_to_json(trains, tests, csv_temp_file_path, json_temp_file_path, detect_strategy,language,similarityThreshold)
+
+    elif detect_strategy == 'VulDet':
+        result = format(cve_id)
+
+        # 将 result 存储到一个 JSON 文件
+        with open('result.json', 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+
+        # POST 请求
+        response = requests.post(
+            url="http://127.0.0.1:6006/generate",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(result)  # 将Python对象转换为JSON字符串
+        )
+
+        # 处理响应结果
+        if response.status_code == 200:
+            print("接口响应：")
+            result = response.json()["output"]
+        else:
+            print(f"请求失败，状态码：{response.status_code}")
+            print(response.text)
+
 
     print(result)
     return result
