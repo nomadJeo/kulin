@@ -4,6 +4,7 @@ import random
 from VulLibGen.vuldet_utils.nvd_crawler import fetchNVDInfo
 
 def get_file_path(file_name):
+    # 填入数据集的位置
     base_path = 'VulLibGen/vuldet_multi_dataset/'
     return f"{base_path}{file_name}"
 

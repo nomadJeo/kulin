@@ -101,11 +101,7 @@ def getLabels(params=None):
     elif detect_strategy == 'VulDet':
         result = format(cve_id)
 
-        # 将 result 存储到一个 JSON 文件
-        with open('result.json', 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
-
-        # POST 请求
+        # POST 请求, 要求 url 为 VulDet 大模型的访问接口
         response = requests.post(
             url="http://127.0.0.1:6006/generate",
             headers={"Content-Type": "application/json"},
