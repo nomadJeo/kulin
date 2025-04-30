@@ -4,8 +4,8 @@ import random
 from VulLibGen.vuldet_utils.nvd_crawler import fetchNVDInfo
 
 def get_file_path(file_name):
-    # 填入数据集的位置
-    base_path = 'VulLibGen/vuldet_multi_dataset/'
+    # 填入数据集的位置，直接在对应目录解压 vuldet_multi_dataset.zip 即可
+    base_path = 'VulLibGen/vuldet_utils/vuldet_multi_dataset/'
     return f"{base_path}{file_name}"
 
 def filterReferences(references):
@@ -79,8 +79,9 @@ def splitData(cveIds):
     return trainCveIds, testCveIds
 
 
-def format(cveId, refinementMethod='custom'):
+def format(cveId):
     nvdInfo = fetchNVDInfo(cveId)
+    print(f'nvdInfo: {nvdInfo}')
 
     githubRawInfoMap = json.load(open(get_file_path('githubRawInfoMap.json'), 'r'))
     snykRawInfoMap = json.load(open(get_file_path('snykRawInfoMap.json'), 'r'))

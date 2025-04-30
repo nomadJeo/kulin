@@ -100,17 +100,20 @@ def getLabels(params=None):
 
     elif detect_strategy == 'VulDet':
         result = format(cve_id)
+        print("VulDet Input: ")
+        print(result)
 
         # POST 请求, 要求 url 为 VulDet 大模型的访问接口
         response = requests.post(
             url="http://127.0.0.1:6006/generate",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(result)  # 将Python对象转换为JSON字符串
+            data=json.dumps(result)
         )
 
         # 处理响应结果
         if response.status_code == 200:
-            print("接口响应：")
+            print("VulDet Output: ")
+            # 格式为 [ [package_manager, package_name, affected_version], ... ]
             result = response.json()["output"]
         else:
             print(f"请求失败，状态码：{response.status_code}")
