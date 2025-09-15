@@ -1,8 +1,7 @@
-from pydoc import pager
+import time
 
 import requests
 from bs4 import BeautifulSoup
-import time
 
 from web_crawler.nvd import fetch_description
 

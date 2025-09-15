@@ -1,13 +1,15 @@
 import os
 import time
+
 import dashscope
-from dotenv import load_dotenv
 from openai import OpenAI
+from dotenv import load_dotenv
+
 
 # 设置全局代理
 # os.environ["http_proxy"] = "http://127.0.0.1:7890"
 # os.environ["https_proxy"] = "http://127.0.0.1:7890"
-# load_dotenv()
+load_dotenv()
 
 class BaseClient:
     """所有 AI Client 的基类，包含失败重试机制"""

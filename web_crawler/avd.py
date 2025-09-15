@@ -1,9 +1,8 @@
 import re
 
 import requests
-from accelerate.commands.config.default import description
+# from accelerate.commands.config.default import description
 from bs4 import BeautifulSoup
-from distributed.utils_test import security
 
 from web_crawler.nvd import fetch_description, fetch_riskLevel
 
