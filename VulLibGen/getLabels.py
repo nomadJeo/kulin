@@ -78,8 +78,14 @@ def getLabels(params=None):
 
         # 创建临时CSV文件
         with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False, suffix='.csv') as csv_temp_file:
-            # 解析white_list字符串为Python对象
-            white_list_parsed = json.loads(white_list)
+            # 解析white_list字符串为Python对象，添加null检查
+            if not white_list or str(white_list).strip() == "":
+                white_list_parsed = []
+            else:
+                try:
+                    white_list_parsed = json.loads(white_list) if isinstance(white_list, str) else white_list
+                except (json.JSONDecodeError, TypeError):
+                    white_list_parsed = []
 
             # 创建临时CSV文件
             with tempfile.NamedTemporaryFile(mode='w+', newline='', delete=False, suffix='.csv') as csv_temp_file:

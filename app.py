@@ -1,4 +1,6 @@
 # app.py
+import urllib
+
 import requests
 from flask import Flask, jsonify, request
 from flask import Flask, jsonify
@@ -41,7 +43,6 @@ def get_github_vulnerabilities():
 @app.route('/vulnerabilities/avd', methods=['GET'])
 def get_avd_vulnerabilities():
     data = avd()
-    print(data)
     return jsonify(data)
 
 @app.route('/vulnerabilities/nvd', methods=['GET'])
@@ -132,18 +133,22 @@ def get_repair_suggestion():
 
 @app.route('/parse/pom_parse', methods=['GET'])
 def pom_parse():
-    project_folder = request.args.get("project_folder")
+    # project_folder = request.args.get("project_folder")
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
     return process_projects(project_folder)
 
 @app.route('/parse/c_parse',methods=['GET'])
 def c_parse():
-    project_folder = request.args.get("project_folder")
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
     return  collect_dependencies(project_folder)
 
 @app.route('/vulnerabilities/detect', methods=['POST'])
 def detect_vulnerabilities():
-    # 从请求体中获取JSON数据
+    # 从请求体中获取JSON数据，添加null检查
     params = request.get_json()
+
+    if params is None:
+        params = {}
 
     print(params)
     data = getLabels(params=params)

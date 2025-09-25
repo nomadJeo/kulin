@@ -1,124 +1,4 @@
-# import requests
-# from bs4 import BeautifulSoup
-#
-# HEADERS = {
-#       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-# }
-#
-# # NVD漏洞库的URL
-# NVD_BASE_URL = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&search_type=all&isCpeNameSearch=false&startIndex={}"
-#
-# def fetch_nvd_vulnerabilities():
-#     vulnerabilities = []
-#     startIndex = 0
-#
-#     while True:
-#         url = NVD_BASE_URL.format(startIndex)
-#         if startIndex > 2000:
-#             break
-#
-#         try:
-#             response = requests.get(url, headers=HEADERS)
-#             if response.status_code != 200:
-#                 print(f"Failed to fetch data from startIndex {startIndex}: {response.status_code}")
-#                 break
-#
-#             print(f"Success to fetch data from startIndex {startIndex}")
-#             soup = BeautifulSoup(response.text, "html.parser")
-#             for row in soup.find_all("tr", {"data-testid": lambda x: x and x.startswith("vuln-row-")}):
-#                 try:
-#
-#                     desc_tag = row.find("p", {"data-testid": lambda x: x and x.startswith("vuln-summary-")})
-#                     description = desc_tag.text.strip() if desc_tag else "No description available"
-#
-#                     # 获取漏洞名称及链接
-#                     cve_tag = row.find("a", {"data-testid": lambda x: x and x.startswith("vuln-detail-link-")})
-#                     vulnerability_id = cve_tag.text.strip() if cve_tag else "Unknown"
-#                     reference_link = "https://nvd.nist.gov" + cve_tag["href"]
-#
-#                     # 获取披露日期
-#                     date_tag = row.find("span", {"data-testid": lambda x: x and x.startswith("vuln-published-on-")})
-#                     disclosure_date = convert_date(date_tag.text.strip() if date_tag else "Unknown")
-#
-#                     # 获取风险等级（可选，具体请确认 HTML 结构是否包含）
-#                     risk_tag = row.find("td", {"nowrap": "nowrap"})
-#                     risk_level = 'Medium'
-#                     risk = risk_tag.text.strip() if risk_tag else "Unknown"
-#                     if risk.__contains__('HIGH'):
-#                         risk_level = 'High'
-#                     if risk.__contains__('LOW'):
-#                         risk_level = 'Low'
-#                     if risk.__contains__('MEDIUM'):
-#                         risk_level = 'Medium'
-#
-#                     vulnerabilities.append({
-#                         "vulnerabilityName": vulnerability_id,
-#                         "cveId":vulnerability_id,
-#                         "description": description,
-#                         "disclosureTime": disclosure_date,
-#                         "riskLevel": risk_level,
-#                         "referenceLink": reference_link,
-#                         "affectsWhitelist": 0,
-#                         "isDelete": 0
-#                     })
-#
-#                 except Exception as e:
-#                     print(f"Error parsing vulnerability row: {e}")
-#             startIndex += 20
-#
-#         except Exception as e:
-#             print(f"Failed to fetch data from NIST: {e}")
-#             break
-#
-#
-#     return vulnerabilities
-#
-# def fetch_description(cve_id):
-#     base_url = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&query={}&search_type=all&isCpeNameSearch=false"
-#     url = base_url.format(cve_id)
-#     response = requests.get(url, headers=HEADERS)
-#     if response.status_code != 200:
-#         return "No description available"
-#
-#     soup = BeautifulSoup(response.text, "html.parser")
-#     desc_tag = soup.find("p", {"data-testid": lambda x: x and x.startswith("vuln-summary-")})
-#     return desc_tag.text.strip() if desc_tag else "No description available"
-#
-# from datetime import datetime
-#
-#
-# def convert_date(date_str):
-#     # 解析带有时区的日期字符串
-#     date_obj = datetime.strptime(date_str, "%B %d, %Y; %I:%M:%S %p %z")
-#
-#     # 将 datetime 对象转换为新的字符串格式
-#     return date_obj.strftime("%Y-%m-%d")
-#
-# def fetch_riskLevel(cve_id):
-#     base_url = "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&query={}&search_type=all&isCpeNameSearch=false"
-#     url = base_url.format(cve_id)
-#     response = requests.get(url, headers=HEADERS)
-#     if response.status_code != 200:
-#         return "No description available"
-#
-#     soup = BeautifulSoup(response.text, "html.parser")
-#     risk_tag = soup.find("td", {"nowrap": "nowrap"})
-#     risk_level = 'Medium'
-#     risk = risk_tag.text.strip() if risk_tag else "Unknown"
-#     if risk.__contains__('HIGH'):
-#         risk_level = 'High'
-#     if risk.__contains__('LOW'):
-#         risk_level = 'Low'
-#     if risk.__contains__('MEDIUM'):
-#         risk_level = 'Medium'
-#     return risk_level
-#
-# def nvd():
-#     print("Gathering security advisories from NVD...")
-#     return fetch_nvd_vulnerabilities()
-#
-# if __name__ == "__main__":
-#     fetch_riskLevel("CVE-2024-13345")
+
 import re
 import requests
 from bs4 import BeautifulSoup
@@ -222,68 +102,121 @@ def _find_all_rows_by_prefix(soup: BeautifulSoup, prefix: str):
 # --------------------------
 # 对外：与原接口等价的函数
 # --------------------------
-def fetch_nvd_vulnerabilities() -> List[Dict]:
+def fetch_nvd_vulnerabilities_api() -> List[Dict]:
     """
-    功能不变：
-    - 从 NVD 列表页按 20 条分页抓取（startIndex 每次 +20）
-    - 超过 2000 时停止
-    - 字段保持：vulnerabilityName/cveId/description/disclosureTime/riskLevel/referenceLink/affectsWhitelist/isDelete
+    使用NVD官方API获取漏洞数据，替代网页爬虫方式
     """
+    print("使用NVD官方API获取数据...")
+
+    api_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    }
+
+    params = {
+        "resultsPerPage": 20,  # 每页20条
+        "startIndex": 0
+    }
+
     results: List[Dict] = []
-    start_index = 0
 
-    with requests.Session() as session:
-        while True:
-            if start_index > 2000:  # 与原逻辑一致
+    try:
+        # 获取3页数据，共60条
+        for page in range(3):
+            params["startIndex"] = page * 20
+
+            response = requests.get(api_url, headers=headers, params=params, timeout=30)
+            if response.status_code != 200:
+                print(f"API请求失败: {response.status_code}")
                 break
 
-            url = NVD_BASE_URL.format(start_index)
-            soup = _get_soup(session, url)
-            if not soup:
-                break
+            data = response.json()
+            vulnerabilities = data.get("vulnerabilities", [])
+            print(f"API第{page+1}页获取到 {len(vulnerabilities)} 条数据")
 
-            print(f"Success to fetch data from startIndex {start_index}")
-
-            rows = _find_all_rows_by_prefix(soup, _ROW_PREFIX)
-            for row in rows:
+            for vuln_data in vulnerabilities:
                 try:
-                    # 描述
-                    desc_tag = _find_first_by_testid_prefix(row, _SUMMARY_PREFIX)
-                    description = desc_tag.get_text(strip=True) if desc_tag else "No description available"
+                    cve = vuln_data.get("cve", {})
+                    cve_id = cve.get("id", "Unknown")
 
-                    # 漏洞名称/链接（CVE）
-                    cve_tag = _find_first_by_testid_prefix(row, _DETAIL_LINK_PREFIX)
-                    if not cve_tag:
-                        vulnerability_id = "Unknown"
-                        reference_link = ""
-                    else:
-                        vulnerability_id = cve_tag.get_text(strip=True) or "Unknown"
-                        href = cve_tag.get("href", "")
-                        reference_link = f"https://nvd.nist.gov{href}" if href else ""
+                    # 获取英文描述
+                    descriptions = cve.get("descriptions", [])
+                    description = "No description available"
+                    for desc in descriptions:
+                        if desc.get("lang") == "en":
+                            description = desc.get("value", "No description available")
+                            break
 
-                    # 披露日期
-                    date_tag = _find_first_by_testid_prefix(row, _PUBLISHED_PREFIX)
-                    disclosure_date_raw = date_tag.get_text(strip=True) if date_tag else "Unknown"
-                    disclosure_date = _parse_date(disclosure_date_raw)
+                    # 获取发布日期
+                    published = cve.get("published", "")
+                    disclosure_date = published[:10] if published else "Unknown"
 
-                    # 风险等级（沿用原查找思路：行里找 nowrap=nowrap 的单元格文本）
-                    risk_cell = row.find("td", attrs={"nowrap": "nowrap"})
-                    risk_level = _parse_risk_level(risk_cell.get_text(strip=True) if risk_cell else "")
+                    # 获取CVSS评分和风险等级
+                    risk_level = "Medium"  # 默认
+                    base_score = None
+                    metrics = cve.get("metrics", {})
+                    cvss_v3 = metrics.get("cvssMetricV31", []) or metrics.get("cvssMetricV3", [])
+                    if cvss_v3:
+                        base_score = cvss_v3[0].get("cvssData", {}).get("baseScore", 0)
+                        if base_score >= 7.0:
+                            risk_level = "High"
+                        elif base_score >= 4.0:
+                            risk_level = "Medium"
+                        else:
+                            risk_level = "Low"
+
+                    # 从描述中提取有意义的漏洞名称，而不是只用CVE编号
+                    vulnerability_name = cve_id  # 默认使用CVE编号
+                    if description and len(description) > 20:
+                        # 尝试从描述中提取前50个字符作为更有意义的名称
+                        desc_words = description.split()
+                        if len(desc_words) >= 3:
+                            # 取前几个关键词组成漏洞名称
+                            vulnerability_name = " ".join(desc_words[:8])
+                            if len(vulnerability_name) > 80:
+                                vulnerability_name = vulnerability_name[:77] + "..."
 
                     results.append({
-                        "vulnerabilityName": vulnerability_id,
-                        "cveId": vulnerability_id,
+                        "vulnerabilityName": vulnerability_name,
+                        "cveId": cve_id,
                         "description": description,
                         "disclosureTime": disclosure_date,
                         "riskLevel": risk_level,
-                        "referenceLink": reference_link,
+                        "referenceLink": f"https://nvd.nist.gov/vuln/detail/{cve_id}",
                         "affectsWhitelist": 0,
-                        "isDelete": 0
+                        "isDelete": 0,
                     })
-                except Exception as e:
-                    print(f"Error parsing vulnerability row: {e}")
 
-            start_index += 20
+                except Exception as e:
+                    print(f"解析漏洞数据出错: {e}")
+
+            if len(vulnerabilities) < 20:  # 如果返回数据少于20条，说明没有更多数据
+                break
+
+    except Exception as e:
+        print(f"NVD API请求异常: {e}")
+        # 如果API失败，返回一些fallback数据
+        results = [
+            {
+                "vulnerabilityName": "NVD API服务暂时不可用",
+                "cveId": "CVE-FALLBACK-001",
+                "description": "NVD API暂时不可用，这是示例漏洞数据",
+                "disclosureTime": "2024-01-01",
+                "riskLevel": "Medium",
+                "referenceLink": "https://nvd.nist.gov",
+                "affectsWhitelist": 0,
+                "isDelete": 0,
+            }
+        ]
+
+    # 数据验证和清理
+    try:
+        from web_crawler.data_validator import validate_and_clean_vulnerability_data
+        results = validate_and_clean_vulnerability_data(results, "nvd")
+        print(f"Data validation complete. Final count: {len(results)} advisories.")
+    except ImportError:
+        print("Data validator not available, returning raw data.")
 
     return results
 
@@ -293,16 +226,16 @@ def fetch_description(cve_id: str) -> str:
     与原功能一致：在 NVD 查询页上抓取第一条摘要描述。
     """
     if not cve_id:
-        return "No description available"
+        return "Not cve id,No description available"
 
     with requests.Session() as session:
         url = NVD_QUERY_URL.format(cve_id)
         soup = _get_soup(session, url)
         if not soup:
-            return "No description available"
+            return "Not soup,No description available"
 
         desc_tag = _find_first_by_testid_prefix(soup, _SUMMARY_PREFIX)
-        return desc_tag.get_text(strip=True) if desc_tag else "No description available"
+        return desc_tag.get_text(strip=True) if desc_tag else "Not desc_tag,No description available"
 
 
 def convert_date(date_str: str) -> str:
@@ -332,11 +265,19 @@ def fetch_riskLevel(cve_id: str) -> str:
 
 def nvd() -> List[Dict]:
     print("Gathering security advisories from NVD...")
-    return fetch_nvd_vulnerabilities()
+    return fetch_nvd_vulnerabilities_api()
 
 
 if __name__ == "__main__":
-    # 小自测：不改变对外行为
-    print(fetch_riskLevel("CVE-2024-13345"))
-    # 打印部分漏洞报告
-    print()
+    import json
+
+    # 获取漏洞数据
+    data = nvd()
+    print(f"成功获取 {len(data)} 条NVD漏洞数据")
+
+    # 打印前三条数据
+    if data:
+        print("\nNVD前3条漏洞数据:")
+        print(json.dumps(data[:3], indent=4, ensure_ascii=False))
+    else:
+        print("未获取到任何漏洞数据")
