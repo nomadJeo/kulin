@@ -4,7 +4,10 @@ import json
 import csv
 import tempfile
 def getLabels(params=None):
-    print(params)
+    try:
+        print(f"params: {params}")
+    except (UnicodeEncodeError, OSError):
+        print("params received (contains special characters)")
 
     language = params.get('language')
     white_list = params.get('white_list')

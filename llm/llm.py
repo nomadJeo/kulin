@@ -71,7 +71,7 @@ class QwenClient(BaseClient):
 
 class LlamaClient(BaseClient):
     def __init__(self, model_name: str = "llama3.3-70b-instruct"):
-        super().__init__(model_name, "ALI_API_KEY")
+        super().__init__(model_name, "ALI_API_KEY", "https://dashscope.aliyuncs.com/compatible-mode/v1")
 
     def Think(self, prompts: list) -> str:
         return self._retry(self._call_api, prompts)
@@ -91,13 +91,13 @@ class LlamaClient(BaseClient):
 
 # 示例用法
 if __name__ == "__main__":
-    # # DeepSeek 示例
-    # deepseek_client = DeepSeekClient(model_name="deepseek-r1")
-    # deepseek_response = deepseek_client.Think([{"role": "user", "content": "9.9和9.11谁大"}])
-    # print("DeepSeek 最终答案：", deepseek_response)
+    # DeepSeek 示例
+    deepseek_client = DeepSeekClient(model_name="deepseek-r1")
+    deepseek_response = deepseek_client.Think([{"role": "user", "content": "9.9和9.11谁大"}])
+    print("DeepSeek 最终答案：", deepseek_response)
 
     # Qwen 示例
-    qwen_client = QwenClient(model_name="qwen-max")
+    qwen_client = QwenClient(model_name="qwen-plus")
     qwen_response = qwen_client.Think([{"role": "user", "content": "你是谁？"}])
     print("Qwen 最终答案：", qwen_response)
 
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # gpt_response = gpt_client.Think([{"role": "user", "content": "Say YYJ"}])
     # print("GPT 最终答案：", gpt_response)
 
-    # LLaMA 示例
-    # llama_client = LlamaClient(model_name="llama3.3-70b-instruct")
+    # # LLaMA 示例
+    # llama_client = LlamaClient(model_name="llama-4-scout-17b-16e-instruct")
     # llama_response = llama_client.Think([{"role": "user", "content": "你能用？"}])
     # print("LLaMA 最终答案：", llama_response)

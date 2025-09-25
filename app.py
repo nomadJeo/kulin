@@ -28,7 +28,7 @@ from VulLibGen.getLabels import getLabels
 model_clients = {
     "qwen": QwenClient(model_name="qwen-max"),
     "deepseek": DeepSeekClient(model_name="deepseek-r1"),
-    "llama": LlamaClient(model_name="llama3.3-70b-instruct")
+    # "llama": LlamaClient(model_name="llama3.3-70b-instruct")
 }
 
 app = Flask(__name__)
@@ -150,10 +150,13 @@ def detect_vulnerabilities():
     if params is None:
         params = {}
 
-    print(params)
+    # print(params)
     data = getLabels(params=params)
-    print("data=")
-    print(data)
+    try:
+        print("data=")
+        print(data)
+    except UnicodeEncodeError:
+        print("data with unicode encoding issues")
     return jsonify(data)
 
 @app.route('/vulnerabilities/test', methods=['POST'])

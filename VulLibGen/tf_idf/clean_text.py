@@ -1,10 +1,7 @@
-import json
 import re
-import os
-import uuid
 
 from nltk.corpus import stopwords
-import numpy as np
+
 stopwds = stopwords.words('english')
 
 
