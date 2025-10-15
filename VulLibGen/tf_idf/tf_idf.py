@@ -73,9 +73,9 @@ def tiny_model_process_data_to_json(trains, tests, pros_path, detect_strategy,la
     print("top10_real_test" + top10_real_test)
 
     if language == 'java':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/tinyModel/java'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/java'
     elif language == 'c':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/tinyModel/c'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/c'
     payload = {
         "data": top10_real_test
     }
@@ -137,32 +137,45 @@ def llm_process_data_to_json(trains, tests, pros_path,pros_json_path, detect_str
     print("top10_real_test" + top10_real_test)
 
     if language == 'java':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/tinyModel/java'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/java'
     elif language == 'c':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/tinyModel/c'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/c'
     payload = {
         "data": top10_real_test
     }
     response = requests.post(url, json=payload)
     print(response.text)
 
-    response_json = response.json()
+    # 检查响应状态码
+    if response.status_code != 200:
+        raise Exception(f"API请求失败，状态码: {response.status_code}, 响应内容: {response.text}")
+
+    # 检查响应内容是否为空
+    if not response.text:
+        raise Exception("API返回空响应")
+
+    try:
+        response_json = response.json()
+    except Exception as e:
+        raise Exception(f"解析JSON失败: {str(e)}, 响应内容: {response.text}")
     if language == 'java':
         llmtest = prepare_prompts(response_json)
     if language == 'c':
         llmtest = prepare_prompts_c(response_json)
     print(llmtest)
     if language == 'java':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/LLM/java'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/LLM/java'
     elif language == 'c':
-        url = 'http://10.58.0.2:5000/vulnerabilities/detect/LLM/c'
+        url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/LLM/c'
     payload = {
         "data": llmtest
     }
     response = requests.post(url, json=payload)
     print(response.text)
 
-
+    # 检查响应状态码
+    if response.status_code != 200:
+        raise Exception(f"LLM API请求失败，状态码: {response.status_code}, 响应内容: {response.text}")
 
     if language == 'java':
         originOutput = extract_affected_package_from_instruction(response.text)

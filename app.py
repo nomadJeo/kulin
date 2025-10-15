@@ -159,11 +159,13 @@ def detect_vulnerabilities():
         print("data with unicode encoding issues")
     return jsonify(data)
 
-@app.route('/vulnerabilities/test', methods=['POST'])
+@app.route('/vulnerabilities/test', methods=['POST', 'GET'])
 def test():
-    response = requests.post(' http://10.58.0.2:5000/vulnerabilities/test')
-    print(response.text)
-    return response.text
+    return jsonify({
+        "code": 200,
+        "message": "Server is running normally",
+        "status": "OK"
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)

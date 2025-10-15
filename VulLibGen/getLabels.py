@@ -102,7 +102,7 @@ def getLabels(params=None):
                 print(f"CSV临时文件已创建: {csv_temp_file_path}")
 
         if detect_strategy == 'TinyModel-whiteList':
-            result = tf_idf.tiny_model_process_data_to_json(trains, tests, csv_temp_file_path, detect_strategy,language.similarityThreshold)
+            result = tf_idf.tiny_model_process_data_to_json(trains, tests, csv_temp_file_path, detect_strategy, language, similarityThreshold)
         if detect_strategy == 'LLM-whiteList':
             result = tf_idf.llm_process_data_to_json(trains, tests, csv_temp_file_path, json_temp_file_path, detect_strategy,language,similarityThreshold)
 
